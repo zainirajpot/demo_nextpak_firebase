@@ -98,76 +98,79 @@ class LoginController extends ChangeNotifier {
 
   // Show dialog for email verification
   void _showVerifyEmailDialog(BuildContext context, User user) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          Timer? _emailVerificationTimer;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            Timer? _emailVerificationTimer;
 
-          // Start the email verification check when the dialog is shown
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _emailVerificationTimer = Timer.periodic(Duration(seconds: 4), (timer) async {
-              await user.reload();
-              if (user.emailVerified) {
-                timer.cancel();
-                setState(() {
-                  isEmailVerified = true; // Mark as verified
-                });
-              }
+            // Start the email verification check when the dialog is shown
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _emailVerificationTimer =
+                  Timer.periodic(Duration(seconds: 4), (timer) async {
+                await user.reload();
+                if (user.emailVerified) {
+                  timer.cancel();
+                  setState(() {
+                    isEmailVerified = true; // Mark as verified
+                  });
+                }
+              });
             });
-          });
 
-          return AlertDialog(
-            title: Text('Verify Your Email'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Please verify your email to continue. If you have not received a verification email, we can resend it.',
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: canResendVerification
-                      ? () async {
-                          await user.sendEmailVerification();
-                          showSnackbar(message: 'Verification email sent!');
-                          startResendCooldown();
-                        }
-                      : null,
-                  child: Text('Resend Verification Email'),
-                ),
-                if (!canResendVerification)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      'Please wait before retrying.',
-                      style: TextStyle(color: Colors.red),
-                    ),
+            return AlertDialog(
+              title: Text('Verify Your Email'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Please verify your email to continue. If you have not received a verification email, we can resend it.',
                   ),
-              ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); 
-                },
-                child: Text('Close'),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: canResendVerification
+                        ? () async {
+                            await user.sendEmailVerification();
+                            showSnackbar(message: 'Verification email sent!');
+                            startResendCooldown();
+                          }
+                        : null,
+                    child: Text('Resend Verification Email'),
+                  ),
+                  if (!canResendVerification)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(
+                        'Please wait before retrying.',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                ],
               ),
+              actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    context.pushNamed(AppRoute.homePage); 
+                    Navigator.of(context).pop();
                   },
-                  child: Text('Continue',style: TextStyle(color: colorScheme(context).onSurface),),
+                  child: Text('Close'),
                 ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
+                TextButton(
+                  onPressed: () {
+                    context.pushNamed(AppRoute.homePage);
+                  },
+                  child: Text(
+                    'Continue',
+                    style: TextStyle(color: colorScheme(context).onSurface),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   // Make this method public for use
   void startResendCooldown() {
